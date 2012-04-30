@@ -7,17 +7,17 @@ import Image
 from glob import glob
 
 class Tumblr(object):
-    def __init__(self, site="http://bonjourmadame.fr/api/read", pasta="/Users/rafael/Dropbox/Bonjour/"):
+    def __init__(self, site="http://bonjourmadame.fr/api/read", folder="/Users/rafael/Dropbox/Bonjour/"):
         self.site = site
-        self.pasta = pasta
+        self.folder = folder
         self.links = {}
-        self.pagina_atual = '?type=photo'
+        self.current_page = '?type=photo'
         import os
-        os.chdir(pasta)
+        os.chdir(folder)
         self._total_posts()
     
     def _open(self):
-        raw_xml = urllib.urlretrieve(self.site+self.pagina_atual)
+        raw_xml = urllib.urlretrieve(self.site+self.current_page)
         xml = minidom.parse(raw_xml[0])
         self.data = xml.getElementsByTagName('posts')[0]
     
@@ -25,7 +25,7 @@ class Tumblr(object):
         self._open()
         self.total_posts = int(self.data.getAttribute("total"))
         self.original_posts = int(self.data.getAttribute("total"))
-        self._nova_pagina()
+        self._new_page()
     
     def _process_links(self):
         self._open()
@@ -36,10 +36,10 @@ class Tumblr(object):
                         post.getAttribute('id') not in self.links.keys():
                     self.links[post.getAttribute('id')] = tag.firstChild.wholeText
                     break
-        self._nova_pagina()
+        self._new_page()
     
-    def _nova_pagina(self):
-        self.pagina_atual = '?start=%d&type=photo' % (self.total_posts-20)
+    def _new_page(self):
+        self.current_page = '?start=%d&type=photo' % (self.total_posts-20)
         if self.total_posts > 0:
             self.total_posts -= 20
         else:
@@ -61,7 +61,7 @@ class Tumblr(object):
                 data = urllib.urlretrieve(link)
                 img = Image.open(data[0])
                 print "Saving: %d of %d images." % (counter, self.original_posts)
-                img.save(self.pasta+name+"."+img.format.lower())
+                img.save(self.folder+name+"."+img.format.lower())
             counter += 1
         print counter
     
